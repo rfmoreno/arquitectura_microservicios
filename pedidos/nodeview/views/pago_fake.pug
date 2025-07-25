@@ -1,0 +1,42 @@
+doctype html
+html
+  head
+    title Pago Simulado - Tarjeta de Crédito
+    style.
+      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(120deg, #2980b9, #6dd5fa); }
+      .main-container { background: white; margin: 2rem auto; padding: 2rem; border-radius: 10px; width: 600px; box-shadow: 0 4px 12px rgba(0,0,0,0.13);}
+      .tabla-pago { margin-bottom: 1.5em; width: 100%; border-collapse: collapse; }
+      .tabla-pago th, .tabla-pago td { border: 1px solid #ccc; padding: 0.5em; text-align: center;}
+      .tabla-pago th { background: #f0f4fa;}
+      .total-final { font-weight:bold; background: #eef6fc;}
+  body
+    .main-container
+      h1 Pago por Tarjeta de Crédito
+
+      form(method="post", action="/confirmar_pago")
+        table.tabla-pago
+          thead
+            tr
+              th Producto
+              th Cantidad
+              th Precio Unitario
+              th Total
+          tbody
+            each prod in productos
+              tr
+                td= prod.nombre
+                td= prod.cantidad
+                td $#{prod.costo_unitario}
+                td $#{prod.costo_total}
+          tfoot
+            tr.total-final
+              td(colspan="3") Total
+              td $#{total}
+
+        // Envío oculto de los productos para /confirmar_pago
+        input(type="hidden" name="productos" value=JSON.stringify(productos))
+
+        label(for="num_tarjeta") Número de tarjeta:
+        input(type="text" name="num_tarjeta" id="num_tarjeta" required placeholder="4111 1111 1111 1111")
+
+        button(type="submit") Realizar Pago

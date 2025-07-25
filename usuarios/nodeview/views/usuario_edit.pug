@@ -1,0 +1,32 @@
+doctype html
+html(lang="es")
+  head
+    title Editar Usuario
+    style.
+      label, input, select, button { margin: .5em 0; display: block; }
+  body
+    h1 Editar Usuario
+
+    form(method="post", action=`/usuarios/${usuario.id}/edit`)
+      label(for="nombre_completo") Nombre Completo:
+      input(type="text" name="nombre_completo" id="nombre_completo" required value=usuario.nombre_completo)
+
+      label(for="login") Login:
+      input(type="text" name="login" id="login" required value=usuario.login)
+
+      label(for="email") Email:
+      input(type="email" name="email" id="email" required value=usuario.email)
+
+      label(for="password") Nueva Contraseña (dejar vacío para no cambiar):
+      input(type="password" name="password" id="password")
+
+      label(for="id_perfil") Perfil:
+      select(name="id_perfil" id="id_perfil" required)
+        each perfil in perfiles
+          if perfil.id_perfil === usuario.id_perfil
+            option(value=perfil.id_perfil selected)= perfil.perfil
+          else
+            option(value=perfil.id_perfil)= perfil.perfil
+
+      button(type="submit") Guardar cambios
+      a(href="/usuarios") Cancelar

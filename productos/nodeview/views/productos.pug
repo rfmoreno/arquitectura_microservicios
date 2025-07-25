@@ -1,0 +1,20 @@
+doctype html
+html
+  head
+    title Gestión de Productos
+  body
+    h1 Lista de productos
+    ul
+      each p in productos
+        li
+          | #{p.nombre} ($#{p.precio}) - Stock: #{p.stock}
+          form(method="POST", action=`/productos/${p.id}/delete`, style="display:inline")
+            button(type="submit") Eliminar
+    hr
+    h2 Agregar Producto
+    form(method="post", action="/productos")
+      input(name="nombre" placeholder="Nombre" required)
+      input(name="precio" placeholder="Precio" type="number" step="0.01" required)
+      input(name="stock" placeholder="Stock" type="number" min="0" required)
+      button(type="submit") Agregar
+

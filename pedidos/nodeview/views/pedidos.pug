@@ -1,0 +1,123 @@
+doctype html
+html(lang="es")
+  head
+    title Nuevo Pedido
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet", href="https://unpkg.com/awesomplete/awesomplete.min.css")
+    style.
+      body { font-family: 'Segoe UI', Tahoma; background: linear-gradient(120deg, #2980b9, #6dd5fa); }
+      .user-info {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        background: rgba(41, 128, 185, 0.85);
+        color: #fff;
+        padding: 0.75rem 1rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+        display: flex;
+        gap: 2rem;
+        z-index: 1000;
+      }
+      .main-container { background: white; margin: 4rem auto 2rem auto; padding: 2rem; border-radius: 10px; width: 800px; box-shadow: 0 4px 12px rgba(0,0,0,0.13);}
+      .productos-table { border-collapse: collapse; width: 100%; margin-bottom: 1.5em; }
+      .productos-table th, .productos-table td { border: 1px solid #ccc; padding: 0.5em; text-align: center; }
+      .productos-table th { background-color: #f0f4fa; }
+      .total-final { font-weight: bold; background-color: #eef6fc; }
+      form label { margin-top: 1em; }
+      button { margin-top: 1em; padding: 0.7em 1.5em; background: #2980b9; color: #fff; border: none; border-radius: 5px; cursor:pointer; font-size:1em;}
+      button:hover { background: #1c5980; }
+  body
+    .user-info
+      span Usuario: #{usuario.login}
+      span Perfil: #{usuario.perfil}
+      span Correo: #{usuario.email}
+
+    .main-container
+      h1 Nuevo Pedido
+
+      form#pedidoForm(method="post", action="/pagos", onsubmit="return validarYRedireccionarPago(event);")
+        // Se elimina el select de usuario
+
+        label(for="productoInput") Agrega productos al pedido:
+        input#productoInput(type="text" placeholder="Buscar producto")
+        input(type="hidden" id="productos" name="productos" required)
+        ul#productosSeleccionados
+
+        div#tablaProductosCont
+
+        button(type="submit") Proceder a Pago por Tarjeta
+
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    script(src="https://unpkg.com/awesomplete/awesomplete.min.js")
+    script.
+      const productos = !{JSON.stringify(productos)};
+      let productosSeleccionados = [];
+
+      function renderTablaProductos() {
+        let tablaHtml = '';
+        let total = 0;
+        if (productosSeleccionados.length > 0) {
+          tablaHtml += '<table class="productos-table"><thead><tr><th>Id</th><th>Producto</th><th>Cantidad</th><th>Costo Unitario</th><th>Costo Total Item</th></tr></thead><tbody>';
+          productosSeleccionados.forEach((item, idx) => {
+            total += item.costo_unitario * item.cantidad;
+            tablaHtml += `<tr>
+              <td>${idx + 1}</td>
+              <td>${item.nombre}</td>
+              <td>${item.cantidad}</td>
+              <td>$${item.costo_unitario}</td>
+              <td>$${item.costo_unitario * item.cantidad}</td>
+            </tr>`;
+          });
+          tablaHtml += `</tbody>
+            <tfoot>
+              <tr class="total-final"><td colspan="4">Total a Pagar</td><td>$${total}</td></tr>
+            </tfoot>
+          </table>`;
+        } else {
+          tablaHtml = '<p style="color:#888;">No hay productos seleccionados aún.</p>';
+        }
+        document.getElementById('tablaProductosCont').innerHTML = tablaHtml;
+        document.getElementById('productos').value = JSON.stringify(productosSeleccionados);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("productoInput");
+        new Awesomplete(input, {
+          list: productos.map(p => `${p.nombre} | Stock:${p.stock} | $${p.precio} | Id:${p.id}`),
+          minChars: 1
+        });
+
+        input.addEventListener("awesomplete-selectcomplete", e => {
+          const idProducto = parseInt(e.text.value.split('| Id:')[1]);
+          const producto = productos.find(p => p.id === idProducto);
+          if (!producto) return;
+
+          let cantidad = parseInt(prompt(`¿Cuántas unidades de "${producto.nombre}"? Stock: ${producto.stock}`, 1) || "0");
+          if (!cantidad || cantidad < 1 || cantidad > producto.stock)
+            return alert("Cantidad inválida o sobrepasa el stock disponible.");
+
+          productosSeleccionados.push({
+            id: productosSeleccionados.length + 1,
+            productoId: producto.id,
+            nombre: producto.nombre,
+            cantidad,
+            costo_unitario: producto.precio,
+            costo_total: cantidad * producto.precio
+          });
+
+          renderTablaProductos();
+          input.value = '';
+        });
+        renderTablaProductos();
+      });
+
+      function validarYRedireccionarPago(ev) {
+        if (productosSeleccionados.length === 0) {
+          alert("Debes seleccionar al menos un producto.");
+          ev.preventDefault();
+          return false;
+        }
+        document.getElementById('productos').value = JSON.stringify(productosSeleccionados);
+        return true;
+      }
